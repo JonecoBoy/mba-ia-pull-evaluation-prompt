@@ -209,11 +209,16 @@ def get_llm(model: Optional[str] = None, temperature: float = 0.0):
                 "Obtenha uma chave em: https://platform.openai.com/api-keys"
             )
 
-        return ChatOpenAI(
-            model=model_name,
-            temperature=temperature,
-            api_key=api_key
-        )
+        kwargs = {
+            "model": model_name,
+            "api_key": api_key,
+        }
+        # Modelos de raciocínio ou variantes (ex: o1, o3, luna, sol) não suportam temperature != default (1)
+        unsupported_temperature_models = ["luna", "sol", "o1", "o3", "reasoning"]
+        if not any(sub in model_name.lower() for sub in unsupported_temperature_models):
+            kwargs["temperature"] = temperature
+
+        return ChatOpenAI(**kwargs)
 
     elif provider == 'google':
         from langchain_google_genai import ChatGoogleGenerativeAI
