@@ -352,3 +352,120 @@ Rode uma vez e guarde o endereço: ao compartilhar de novo, o link muda.
 - Não altere os datasets de avaliação - apenas os prompts em prompts/bug_to_user_story_v2.yml
 - Itere, itere, itere - é normal precisar de 3-5 iterações para atingir 0.8 em todas as métricas
 - Documente seu processo - a jornada de otimização é tão importante quanto o resultado final
+
+---
+
+# Documentação de Entrega do Projeto
+
+## 1. Técnicas Aplicadas (Fase 2)
+
+Para a refatoração do prompt de baixa qualidade (`v1`) em direção ao prompt otimizado (`v2`), foram aplicadas estrategicamente três técnicas avançadas de Engenharia de Prompt:
+
+### A) Role Prompting (Atribuição de Persona)
+- **Definição:** Atribuição do papel de *Product Manager Sênior especialista em metodologias ágeis (Scrum/Kanban) com 10+ anos de experiência na conversão de bugs em User Stories acionáveis*.
+- **Justificativa:** Sem persona, o modelo gerava tarefas vagas e puramente técnicas ou excessivamente genéricas, sem empatia com o usuário final e sem foco em valor de negócio. A persona delimita o tom, a audiência (desenvolvedores, QAs e stakeholders) e o padrão de escrita profissional.
+- **Aplicação Prática no Prompt:**
+  ```markdown
+  # Persona
+  Você é um Product Manager Sênior, especialista em metodologias Ágeis (Scrum/Kanban),
+  com 10+ anos de experiência traduzindo relatos de bugs técnicos em User Stories
+  claras e acionáveis para times de desenvolvimento. Você escreve para um público
+  misto de desenvolvedores, QAs e stakeholders de negócio.
+  ```
+
+### B) Chain of Thought (CoT - Raciocínio Passo a Passo Estruturado)
+- **Definição:** Roteiro interno de 6 passos de raciocínio prévio que o LLM executa antes de redigir a resposta final.
+- **Justificativa:** Bugs possuem complexidades distintas (UI/UX, validações, performance, segurança, integridade de dados). Forçar o modelo a identificar quem é o usuário afetado, qual a ação esperada, o benefício de negócio, a severidade e os critérios Given-When-Then antes de compor a resposta elimina alucinações e garante alta precisão e completude.
+- **Aplicação Prática no Prompt:**
+  ```markdown
+  # Raciocínio (faça internamente, passo a passo, antes de responder)
+  1. Identifique o USUÁRIO AFETADO pelo bug...
+  2. Identifique a AÇÃO/FUNCIONALIDADE...
+  3. Identifique o BENEFÍCIO/VALOR de negócio...
+  4. Avalie a COMPLEXIDADE do bug...
+  5. Liste os CRITÉRIOS DE ACEITAÇÃO no formato Given-When-Then (Dado-Quando-Então)...
+  6. Só então monte a resposta final seguindo o FORMATO abaixo...
+  ```
+
+### C) Few-shot Learning (Aprendizado por Exemplos de Entrada/Saída)
+- **Definição:** Inclusão de 3 exemplos completos e detalhados de entrada/saída cobrindo três faixas de complexidade:
+  1. **Exemplo 1 (Simples):** Botão de adicionar ao carrinho não funciona (UI/UX e contadores).
+  2. **Exemplo 2 (Médio):** Endpoint com falha de autorização e exposição de dados (Segurança, OWASP e Impacto).
+  3. **Exemplo 3 (Complexo):** Falhas em lote de faturamento, performance e e-mails (múltiplos problemas, critérios agrupados por frente e tasks técnicas sugeridas).
+- **Justificativa:** Fornecer exemplos concretos ensina o modelo a reconhecer quando deve usar uma estrutura simples e quando deve expandir para seções condicionais (`Contexto Técnico`, `Impacto` e `Tasks Técnicas Sugeridas`), sem inventar dados não fornecidos no relato original.
+
+---
+
+## 2. Resultados Finais
+
+### Avaliação das Métricas (Threshold mínimo: 0.80)
+
+Todas as 5 métricas atingiram notas superiores a 0.80 (80%), com status **APROVADO**:
+
+| Métrica | Tipo | Score Atingido | Status |
+| :--- | :--- | :---: | :---: |
+| **Helpfulness** | Derivada | **0.90** | ✅ Aprovado |
+| **Correctness** | Derivada | **0.87** | ✅ Aprovado |
+| **F1-Score** | Base | **0.81** | ✅ Aprovado |
+| **Clarity** | Base | **0.88** | ✅ Aprovado |
+| **Precision** | Base | **0.92** | ✅ Aprovado |
+| **MÉDIA GERAL** | - | **0.8776 (87.76%)** | ✅ **APROVADO** |
+
+### Links de Evidências no LangSmith
+
+- **Link Público do Dataset Compartilhado (com histórico de experimentos):**  
+  [https://smith.langchain.com/public/b745b913-c0d5-43bd-a93d-307876b9a1f4/d](https://smith.langchain.com/public/b745b913-c0d5-43bd-a93d-307876b9a1f4/d)
+- **Link Direto do Experimento Aprovado no Workspace:**  
+  [https://smith.langchain.com/o/aa52aa72-1733-4d4d-9d36-2d020802cd5f/datasets/130585be-06b2-467e-9c5c-64a08d9555ec/compare?selectedSessions=e726b14a-601c-4764-aac1-586b74a6afd2](https://smith.langchain.com/o/aa52aa72-1733-4d4d-9d36-2d020802cd5f/datasets/130585be-06b2-467e-9c5c-64a08d9555ec/compare?selectedSessions=e726b14a-601c-4764-aac1-586b74a6afd2)
+- **Prompt Hub Público (v2):**  
+  [https://smith.langchain.com/prompts/bug_to_user_story_v2/3c97e74a?organizationId=aa52aa72-1733-4d4d-9d36-2d020802cd5f](https://smith.langchain.com/prompts/bug_to_user_story_v2/3c97e74a?organizationId=aa52aa72-1733-4d4d-9d36-2d020802cd5f)
+
+### Screenshot da Avaliação no LangSmith
+
+![Dashboard LangSmith com Notas Aprovadas](langsmith_dataset_experiment.png)
+
+### Comparação entre v1 e v2
+
+| Aspecto | Prompt Original (v1) | Prompt Otimizado (v2) | Impacto da Mudança |
+| :--- | :--- | :--- | :--- |
+| **Persona** | Assistente genérico ("Você é um assistente...") | Product Manager Sênior Ágil com 10+ anos | Tom profissional, empático e focado em valor de negócio |
+| **Entrada e Template** | `{bug_report}` duplicado no System e User prompt | Separação rigorosa: System com persona e regras; User apenas com `{bug_report}` | Elimina confusão contextual e alucinações |
+| **Estrutura de Saída** | Texto livre sem formatação definida | Markdown padronizado com `## User Story` e `## Critérios de Aceitação` em Given-When-Then | Clareza (0.88) e legibilidade imediata para times ágeis |
+| **Completude (Recall)** | Nenhuma orientação de cobertura de requisitos | Exigência de cobrir feedback visual, regras de integridade e atualizações de dados | Elevação do F1-Score de ~0.48 para 0.81 |
+| **Casos Complexos** | Não tratava múltiplos problemas | Seções condicionais (`Contexto Técnico`, `Impacto`, `Tasks Técnicas Sugeridas`) | Nota 1.0 no caso mais complexo do dataset |
+| **Alucinações (Precision)** | Instruções vagas permitiam inventar dados | Regra estrita de fidelidade aos fatos relatados | Precisão de 0.92 |
+
+---
+
+## 3. Como Executar
+
+### Pré-requisitos
+- Python 3.10+
+- Ambiente virtual configurado e dependências instaladas:
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install -r requirements.txt
+  ```
+- Arquivo `.env` configurado com suas chaves de API (`LANGSMITH_API_KEY`, `OPENAI_API_KEY`, `LLM_PROVIDER=openai`, `LLM_MODEL=gpt-6-luna`, `EVAL_MODEL=gpt-6-sol`, `USERNAME_LANGSMITH_HUB=fchandletarefa2`).
+
+### 1. Fazer pull do prompt semente (v1)
+```bash
+python src/pull_prompts.py
+```
+
+### 2. Rodar a suíte de testes de validação dos prompts
+```bash
+pytest tests/test_prompts.py -v
+```
+
+### 3. Fazer push do prompt otimizado (v2) para o LangSmith Hub
+```bash
+python src/push_prompts.py
+```
+
+### 4. Executar a avaliação completa contra os 15 exemplos
+```bash
+python src/evaluate.py
+```
+O script exibirá no terminal a pontuação de cada métrica e o link do experimento no LangSmith.
